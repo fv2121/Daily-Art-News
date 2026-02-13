@@ -1,16 +1,115 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { runPipeline } from "./pipeline/orchestrator";
+import { getSettings, saveSettings, type StyleConfig } from "./settings";
+import { z } from "zod";
+
+const settingsSchema = z.object({
+  rssSources: z.array(z.string()).default([]),
+  artistName: z.string().min(1).default("Daily AI Artist"),
+  negativePrompt: z.string().default(""),
+  compositionMotifs: z.string().default(""),
+  allowedColors: z.array(z.string()).default([]),
+  bannedColors: z.array(z.string()).default([]),
+  forbiddenContent: z.array(z.string()).default([]),
+});
 
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  // put application routes here
-  // prefix all routes with /api
 
-  // use storage to perform CRUD operations on the storage interface
-  // e.g. storage.insertUser(user) or storage.getUserByUsername(username)
+  app.get("/api/artworks", async (_req, res) => {
+    try {
+      const artworks = await storage.getAllPublishedArtworks();
+      res.json(artworks);
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  app.get("/api/pipeline-runs", async (_req, res) => {
+    try {
+      const runs = await storage.getAllPipelineRuns();
+      res.json(runs);
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  app.get("/api/pipeline-runs/:id/themes", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const themesList = await storage.getThemesByRun(id);
+      res.json(themesList);
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  app.get("/api/pipeline-runs/:id/artworks", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const artworksList = await storage.getArtworksByRun(id);
+      res.json(artworksList);
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  app.get("/api/pipeline-runs/:id/news", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const news = await storage.getNewsItemsByRun(id);
+      res.json(news);
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  app.post("/api/pipeline/run", async (_req, res) => {
+    try {
+      const config = await getSettings();
+      const runId = await runPipeline(config);
+      res.json({ runId, status: "started" });
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  app.get("/api/settings", async (_req, res) => {
+    try {
+      const config = await getSettings();
+      res.json(config);
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  app.put("/api/settings", async (req, res) => {
+    try {
+      const parsed = settingsSchema.parse(req.body);
+      const config = await saveSettings(parsed as StyleConfig);
+      res.json(config);
+    } catch (err: any) {
+      if (err.name === "ZodError") {
+        return res.status(400).json({ message: "Invalid settings", errors: err.errors });
+      }
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  app.patch("/api/themes/:id/select", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const theme = await storage.updateTheme(id, { selected: true });
+      if (!theme) return res.status(404).json({ message: "Theme not found" });
+      res.json(theme);
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
 
   return httpServer;
 }
