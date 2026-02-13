@@ -90,6 +90,7 @@ export async function runPipeline(config: StyleConfig): Promise<number> {
         prompt: art.prompt,
         negativePrompt: art.negativePrompt,
         caption: publishContent.caption,
+        rationale: publishContent.rationale,
         hashtags: publishContent.hashtags,
         published: true,
         publishedAt: new Date(),

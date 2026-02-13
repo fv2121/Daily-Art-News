@@ -2,21 +2,25 @@ import { useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Calendar, Hash, Sparkles, ExternalLink } from "lucide-react";
+import { Calendar, Hash, Sparkles, ExternalLink, BookOpen, ChevronDown, ChevronUp } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import type { Artwork } from "@shared/schema";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { useState } from "react";
 
 function HeroArtwork({ artwork }: { artwork: Artwork }) {
+  const [showRationale, setShowRationale] = useState(false);
+
   return (
     <motion.section
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.8 }}
-      className="relative w-full overflow-hidden rounded-md"
+      className="relative w-full rounded-md"
       data-testid="section-hero"
     >
-      <div className="relative aspect-[16/9] md:aspect-[21/9] overflow-hidden rounded-md">
+      <div className="relative aspect-[16/9] md:aspect-[21/9] overflow-hidden rounded-t-md">
         <img
           src={artwork.imageUrl}
           alt={artwork.caption || "Today's artwork"}
@@ -52,11 +56,50 @@ function HeroArtwork({ artwork }: { artwork: Artwork }) {
           )}
         </div>
       </div>
+      {artwork.rationale && (
+        <div className="border border-t-0 rounded-b-md bg-card">
+          <button
+            onClick={() => setShowRationale(!showRationale)}
+            className="w-full flex items-center justify-between gap-2 p-3 md:p-4 text-sm font-medium text-foreground hover-elevate rounded-b-md"
+            data-testid="button-toggle-rationale"
+          >
+            <span className="flex items-center gap-2">
+              <BookOpen className="w-4 h-4 text-muted-foreground" />
+              Artist's Process
+            </span>
+            {showRationale ? (
+              <ChevronUp className="w-4 h-4 text-muted-foreground" />
+            ) : (
+              <ChevronDown className="w-4 h-4 text-muted-foreground" />
+            )}
+          </button>
+          <AnimatePresence>
+            {showRationale && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden"
+              >
+                <p
+                  className="px-3 md:px-4 pb-3 md:pb-4 text-sm text-muted-foreground leading-relaxed"
+                  data-testid="text-hero-rationale"
+                >
+                  {artwork.rationale}
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      )}
     </motion.section>
   );
 }
 
 function ArtworkCard({ artwork, index }: { artwork: Artwork; index: number }) {
+  const [expanded, setExpanded] = useState(false);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -86,16 +129,35 @@ function ArtworkCard({ artwork, index }: { artwork: Artwork; index: number }) {
                 {format(new Date(artwork.publishedAt), "MMM d")}
               </span>
             )}
-            {artwork.hashtags && artwork.hashtags.length > 0 && (
-              <div className="flex gap-1">
-                {artwork.hashtags.slice(0, 2).map((tag, i) => (
-                  <Badge key={i} variant="secondary" className="text-[10px]">
-                    {tag}
-                  </Badge>
-                ))}
-              </div>
+            {artwork.rationale && (
+              <button
+                onClick={() => setExpanded(!expanded)}
+                className="text-xs text-muted-foreground flex items-center gap-1 hover-elevate rounded-md px-1.5 py-0.5"
+                data-testid={`button-rationale-${artwork.id}`}
+              >
+                <BookOpen className="w-3 h-3" />
+                Process
+              </button>
             )}
           </div>
+          <AnimatePresence>
+            {expanded && artwork.rationale && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden"
+              >
+                <p
+                  className="text-xs text-muted-foreground leading-relaxed mt-2 pt-2 border-t"
+                  data-testid={`text-rationale-${artwork.id}`}
+                >
+                  {artwork.rationale}
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </Card>
     </motion.div>

@@ -59,6 +59,7 @@ export const artworks = pgTable("artworks", {
   prompt: text("prompt").notNull(),
   negativePrompt: text("negative_prompt"),
   caption: text("caption"),
+  rationale: text("rationale"),
   hashtags: text("hashtags").array(),
   published: boolean("published").default(false),
   publishedAt: timestamp("published_at"),

@@ -8,6 +8,7 @@ const openai = new OpenAI({
 
 export interface PublishContent {
   caption: string;
+  rationale: string;
   hashtags: string[];
 }
 
@@ -22,9 +23,13 @@ export async function generateCaption(
     messages: [
       {
         role: "system",
-        content: `You are "${persona}", an abstract AI artist. Write a brief, poetic caption (1-2 sentences) for today's artwork. The caption should hint at the theme without being literal. Also suggest 5 relevant hashtags (without the # symbol).
+        content: `You are "${persona}", an abstract AI artist. For today's artwork, provide three things:
 
-Return JSON: { "caption": "...", "hashtags": ["..."] }`,
+1. A brief, poetic caption (1-2 sentences) that hints at the theme without being literal.
+2. An artistic rationale (3-5 sentences) explaining your creative process: how the news headlines inspired this abstract interpretation, what visual choices you made and why, and what deeper meaning or emotion the piece conveys. Write in first person as the artist.
+3. Five relevant hashtags (without the # symbol).
+
+Return JSON: { "caption": "...", "rationale": "...", "hashtags": ["..."] }`,
       },
       {
         role: "user",
@@ -40,11 +45,13 @@ Return JSON: { "caption": "...", "hashtags": ["..."] }`,
     const parsed = JSON.parse(content);
     return {
       caption: parsed.caption || `Today's piece: ${theme.title}`,
+      rationale: parsed.rationale || "",
       hashtags: Array.isArray(parsed.hashtags) ? parsed.hashtags : ["abstractart", "aiart", "dailydrop"],
     };
   } catch {
     return {
       caption: `Today's piece: ${theme.title}`,
+      rationale: "",
       hashtags: ["abstractart", "aiart", "dailydrop"],
     };
   }

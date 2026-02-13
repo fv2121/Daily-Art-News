@@ -17,6 +17,7 @@ import {
   Eye,
   RotateCcw,
   AlertTriangle,
+  BookOpen,
 } from "lucide-react";
 import { format } from "date-fns";
 import type { PipelineRun, Theme, Artwork, NewsItem } from "@shared/schema";
@@ -203,6 +204,17 @@ function PipelineRunCard({ run, isLatest }: { run: PipelineRun; isLatest: boolea
                         </div>
                         {art.caption && (
                           <p className="text-xs text-muted-foreground line-clamp-2">{art.caption}</p>
+                        )}
+                        {art.rationale && (
+                          <div className="mt-1.5 pt-1.5 border-t">
+                            <div className="flex items-center gap-1 mb-1">
+                              <BookOpen className="w-3 h-3 text-muted-foreground" />
+                              <span className="text-[10px] font-medium text-muted-foreground">Artist's Process</span>
+                            </div>
+                            <p className="text-xs text-muted-foreground leading-relaxed" data-testid={`text-dashboard-rationale-${art.id}`}>
+                              {art.rationale}
+                            </p>
+                          </div>
                         )}
                       </div>
                     ))}
