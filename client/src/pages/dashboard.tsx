@@ -55,7 +55,6 @@ function PipelineRunCard({ run, isLatest }: { run: PipelineRun; isLatest: boolea
 
   const { data: artworks } = useQuery<Artwork[]>({
     queryKey: ["/api/pipeline-runs", run.id, "artworks"],
-    enabled: expanded,
   });
 
   const { data: newsItems } = useQuery<NewsItem[]>({
@@ -87,10 +86,28 @@ function PipelineRunCard({ run, isLatest }: { run: PipelineRun; isLatest: boolea
         data-testid={`button-expand-run-${run.id}`}
       >
         <div className="flex items-center gap-3">
-          <StatusBadge status={run.status} />
-          <span className="text-sm font-medium" data-testid={`text-run-date-${run.id}`}>
-            {format(new Date(run.startedAt), "MMM d, yyyy 'at' h:mm a")}
-          </span>
+          {artworks && artworks.length > 0 && (
+            <div className="w-10 h-10 rounded-md overflow-hidden shrink-0" data-testid={`img-thumbnail-run-${run.id}`}>
+              <img
+                src={artworks[0].imageUrl}
+                alt={artworks[0].caption || "Artwork"}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          )}
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2">
+              <StatusBadge status={run.status} />
+              <span className="text-sm font-medium" data-testid={`text-run-date-${run.id}`}>
+                {format(new Date(run.startedAt), "MMM d, yyyy 'at' h:mm a")}
+              </span>
+            </div>
+            {artworks && artworks.length > 0 && artworks[0].caption && (
+              <span className="text-xs text-muted-foreground mt-0.5 line-clamp-1" data-testid={`text-artwork-title-run-${run.id}`}>
+                {artworks[0].caption}
+              </span>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-2">
           {run.newsCount !== null && run.newsCount > 0 && (
