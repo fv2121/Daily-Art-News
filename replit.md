@@ -13,7 +13,8 @@ An automated daily pipeline that transforms news headlines into unique abstract 
 ## Project Structure
 ```
 client/src/
-  pages/gallery.tsx         - Public gallery with hero + archive grid
+  pages/gallery.tsx         - Public gallery with hero + archive grid (images link to detail)
+  pages/artwork-detail.tsx  - Artwork detail page (full image, rationale, theme, news)
   pages/dashboard.tsx       - Pipeline dashboard (run, view themes, artworks)
   pages/settings.tsx        - Configure RSS sources, art style, safety rules
   components/app-sidebar.tsx - Navigation sidebar
@@ -40,6 +41,7 @@ data/style_config.json      - Persisted settings
 
 ## Key API Endpoints
 - `GET /api/artworks` - All published artworks
+- `GET /api/artworks/:id` - Single artwork with theme and news
 - `GET /api/pipeline-runs` - All pipeline runs
 - `GET /api/pipeline-runs/:id/themes` - Themes for a run
 - `GET /api/pipeline-runs/:id/artworks` - Artworks for a run
