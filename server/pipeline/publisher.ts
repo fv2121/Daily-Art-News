@@ -37,22 +37,28 @@ Return JSON: { "caption": "...", "rationale": "...", "hashtags": ["..."] }`,
       },
     ],
     response_format: { type: "json_object" },
-    max_completion_tokens: 512,
+    max_completion_tokens: 1024,
   });
 
   const content = response.choices[0]?.message?.content || "{}";
+  let parsed: any;
   try {
-    const parsed = JSON.parse(content);
-    return {
-      caption: parsed.caption || `Today's piece: ${theme.title}`,
-      rationale: parsed.rationale || "",
-      hashtags: Array.isArray(parsed.hashtags) ? parsed.hashtags : ["abstractart", "aiart", "dailydrop"],
-    };
-  } catch {
-    return {
-      caption: `Today's piece: ${theme.title}`,
-      rationale: "",
-      hashtags: ["abstractart", "aiart", "dailydrop"],
-    };
+    parsed = JSON.parse(content);
+  } catch (parseErr: any) {
+    console.error("[Publisher] Failed to parse caption response:", content.slice(0, 500));
+    throw new Error(`Caption JSON parse error: ${parseErr.message}. Response: ${content.slice(0, 200)}`);
   }
+
+  const caption = parsed.caption || `Today's piece: ${theme.title}`;
+  const rationale = parsed.rationale || "";
+  const hashtags = Array.isArray(parsed.hashtags) ? parsed.hashtags : ["abstractart", "aiart", "dailydrop"];
+
+  if (!parsed.caption) {
+    console.warn("[Publisher] Caption field missing from OpenAI response:", content.slice(0, 300));
+  }
+  if (!parsed.rationale) {
+    console.warn("[Publisher] Rationale field missing from OpenAI response:", content.slice(0, 300));
+  }
+
+  return { caption, rationale, hashtags };
 }
