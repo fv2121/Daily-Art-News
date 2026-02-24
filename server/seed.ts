@@ -3,9 +3,28 @@ import { db } from "./db";
 import { artworks, pipelineRuns, themes, newsItems } from "@shared/schema";
 import { sql } from "drizzle-orm";
 
+const seedRationales: Record<string, string> = {
+  "/artworks/seed/seed-artwork-1.png": "Today's headlines spoke of a climate summit where world leaders found rare common ground. I was drawn to the tension between opposing forces finding equilibrium\u2014the rigid geometry of political structures meeting the organic flow of nature. The deep indigo represents the gravity of the moment, while coral accents pulse with the warmth of collective hope. The shapes converge at the center, neither side dominating, capturing that fragile balance between human ambition and natural forces.",
+  "/artworks/seed/seed-artwork-3.png": "An architecture exhibition challenging how we see urban spaces sparked this piece. I chose layered, translucent rectangles to evoke blueprints and building facades, then shattered them with sharp diagonals\u2014the way new ideas fracture old assumptions. Earth tones ground the composition in the physical world, while unexpected magenta bursts represent the creative vision that dares to reimagine what a city could become.",
+  "/artworks/seed/seed-artwork-4.png": "A breakthrough in renewable energy storage drew my attention to the hidden forces that power our world. I translated this into organic, flowing forms that suggest ocean currents\u2014energy moving beneath the surface, unseen but powerful. The navy blue speaks to the depth and mystery of scientific discovery, while emerald green hints at the promise of sustainability. White highlights emerge like breakthroughs piercing through the unknown.",
+  "/artworks/seed/seed-artwork-2.png": "Global markets reacting in unison to policy shifts reminded me of invisible networks\u2014how distant events ripple through interconnected systems. I painted circles as nodes of influence, connected by thin, purposeful lines that carry information and consequence. Teal conveys the cool logic of systems thinking, while amber gradients pulse with the warmth of human decision-making. The composition is deliberately balanced yet dynamic, mirroring the tension between stability and change.",
+};
+
+async function backfillRationales() {
+  const existing = await storage.getAllPublishedArtworks();
+  for (const art of existing) {
+    if (!art.rationale && seedRationales[art.imageUrl]) {
+      await db.update(artworks).set({ rationale: seedRationales[art.imageUrl] }).where(sql`id = ${art.id}`);
+    }
+  }
+}
+
 export async function seedDatabase() {
   const existingArtworks = await storage.getAllPublishedArtworks();
-  if (existingArtworks.length > 0) return;
+  if (existingArtworks.length > 0) {
+    await backfillRationales();
+    return;
+  }
 
   const seedRuns = [
     { status: "completed", newsCount: 12, completedAt: new Date(Date.now() - 3 * 86400000) },
