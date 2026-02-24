@@ -18,6 +18,7 @@ import {
   RotateCcw,
   AlertTriangle,
   BookOpen,
+  Trash2,
 } from "lucide-react";
 import { format } from "date-fns";
 import type { PipelineRun, Theme, Artwork, NewsItem } from "@shared/schema";
@@ -45,6 +46,7 @@ function StatusBadge({ status }: { status: string }) {
 
 function PipelineRunCard({ run, isLatest }: { run: PipelineRun; isLatest: boolean }) {
   const [expanded, setExpanded] = useState(isLatest);
+  const { toast } = useToast();
 
   const { data: themes } = useQuery<Theme[]>({
     queryKey: ["/api/pipeline-runs", run.id, "themes"],
@@ -59,6 +61,20 @@ function PipelineRunCard({ run, isLatest }: { run: PipelineRun; isLatest: boolea
   const { data: newsItems } = useQuery<NewsItem[]>({
     queryKey: ["/api/pipeline-runs", run.id, "news"],
     enabled: expanded,
+  });
+
+  const deleteRun = useMutation({
+    mutationFn: async () => {
+      await apiRequest("DELETE", `/api/pipeline-runs/${run.id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/pipeline-runs"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/artworks"] });
+      toast({ title: "Run deleted", description: "The pipeline run and its artwork have been removed." });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Failed to delete", description: error.message, variant: "destructive" });
+    },
   });
 
   const isActive = ["pending", "ingesting", "analyzing", "generating", "publishing"].includes(run.status);
@@ -82,6 +98,25 @@ function PipelineRunCard({ run, isLatest }: { run: PipelineRun; isLatest: boolea
               <Newspaper className="w-3 h-3 mr-1" />
               {run.newsCount} articles
             </Badge>
+          )}
+          {!isActive && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-muted-foreground hover:text-destructive"
+              onClick={(e) => {
+                e.stopPropagation();
+                deleteRun.mutate();
+              }}
+              disabled={deleteRun.isPending}
+              data-testid={`button-delete-run-${run.id}`}
+            >
+              {deleteRun.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Trash2 className="w-4 h-4" />
+              )}
+            </Button>
           )}
           <Eye className="w-4 h-4 text-muted-foreground" />
         </div>

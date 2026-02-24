@@ -116,6 +116,24 @@ export async function registerRoutes(
     }
   });
 
+  app.delete("/api/pipeline-runs/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const run = await storage.getPipelineRun(id);
+      if (!run) {
+        return res.status(404).json({ message: "Pipeline run not found" });
+      }
+      const isActive = ["pending", "ingesting", "analyzing", "generating", "publishing"].includes(run.status);
+      if (isActive) {
+        return res.status(400).json({ message: "Cannot delete a running pipeline" });
+      }
+      await storage.deletePipelineRun(id);
+      res.json({ message: "Deleted" });
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
   app.patch("/api/themes/:id/select", async (req, res) => {
     try {
       const id = parseInt(req.params.id);

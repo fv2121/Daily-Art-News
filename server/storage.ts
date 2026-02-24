@@ -32,6 +32,8 @@ export interface IStorage {
   getArtworksByRun(runId: number): Promise<Artwork[]>;
   getAllPublishedArtworks(): Promise<Artwork[]>;
   updateArtwork(id: number, data: Partial<Artwork>): Promise<Artwork | undefined>;
+
+  deletePipelineRun(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -113,6 +115,13 @@ export class DatabaseStorage implements IStorage {
   async updateArtwork(id: number, data: Partial<Artwork>): Promise<Artwork | undefined> {
     const [artwork] = await db.update(artworks).set(data).where(eq(artworks.id, id)).returning();
     return artwork;
+  }
+
+  async deletePipelineRun(id: number): Promise<void> {
+    await db.delete(artworks).where(eq(artworks.pipelineRunId, id));
+    await db.delete(themes).where(eq(themes.pipelineRunId, id));
+    await db.delete(newsItems).where(eq(newsItems.pipelineRunId, id));
+    await db.delete(pipelineRuns).where(eq(pipelineRuns.id, id));
   }
 }
 
