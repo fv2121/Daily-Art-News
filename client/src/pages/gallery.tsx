@@ -8,6 +8,7 @@ import { format } from "date-fns";
 import type { Artwork } from "@shared/schema";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
+import { Link } from "wouter";
 
 function HeroArtwork({ artwork }: { artwork: Artwork }) {
   const [showRationale, setShowRationale] = useState(false);
@@ -20,7 +21,8 @@ function HeroArtwork({ artwork }: { artwork: Artwork }) {
       className="relative w-full rounded-md"
       data-testid="section-hero"
     >
-      <div className="relative aspect-[16/9] md:aspect-[21/9] overflow-hidden rounded-t-md">
+      <Link href={`/artwork/${artwork.id}`}>
+      <div className="relative aspect-[16/9] md:aspect-[21/9] overflow-hidden rounded-t-md cursor-pointer">
         <img
           src={artwork.imageUrl}
           alt={artwork.caption || "Today's artwork"}
@@ -56,6 +58,7 @@ function HeroArtwork({ artwork }: { artwork: Artwork }) {
           )}
         </div>
       </div>
+      </Link>
       {artwork.rationale && (
         <div className="border border-t-0 rounded-b-md bg-card">
           <button
@@ -110,14 +113,16 @@ function ArtworkCard({ artwork, index }: { artwork: Artwork; index: number }) {
         className="overflow-visible group hover-elevate"
         data-testid={`card-artwork-${artwork.id}`}
       >
-        <div className="aspect-square overflow-hidden rounded-t-md">
-          <img
-            src={artwork.imageUrl}
-            alt={artwork.caption || "Artwork"}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-            data-testid={`img-artwork-${artwork.id}`}
-          />
-        </div>
+        <Link href={`/artwork/${artwork.id}`}>
+          <div className="aspect-square overflow-hidden rounded-t-md cursor-pointer">
+            <img
+              src={artwork.imageUrl}
+              alt={artwork.caption || "Artwork"}
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              data-testid={`img-artwork-${artwork.id}`}
+            />
+          </div>
+        </Link>
         <div className="p-3">
           <p className="text-sm text-foreground line-clamp-2 mb-2" data-testid={`text-caption-${artwork.id}`}>
             {artwork.caption || "Untitled piece"}

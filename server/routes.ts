@@ -29,6 +29,22 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/artworks/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const artwork = await storage.getArtworkById(id);
+      if (!artwork) {
+        return res.status(404).json({ message: "Artwork not found" });
+      }
+      const theme = artwork.themeId ? (await storage.getThemesByRun(artwork.pipelineRunId!))
+        .find(t => t.id === artwork.themeId) : null;
+      const news = artwork.pipelineRunId ? await storage.getNewsItemsByRun(artwork.pipelineRunId) : [];
+      res.json({ artwork, theme, news });
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
   app.get("/api/pipeline-runs", async (_req, res) => {
     try {
       const runs = await storage.getAllPipelineRuns();

@@ -28,6 +28,7 @@ export interface IStorage {
   updateTheme(id: number, data: Partial<Theme>): Promise<Theme | undefined>;
 
   createArtwork(data: InsertArtwork): Promise<Artwork>;
+  getArtworkById(id: number): Promise<Artwork | undefined>;
   getArtworksByRun(runId: number): Promise<Artwork[]>;
   getAllPublishedArtworks(): Promise<Artwork[]>;
   updateArtwork(id: number, data: Partial<Artwork>): Promise<Artwork | undefined>;
@@ -93,6 +94,11 @@ export class DatabaseStorage implements IStorage {
 
   async createArtwork(data: InsertArtwork): Promise<Artwork> {
     const [artwork] = await db.insert(artworks).values(data).returning();
+    return artwork;
+  }
+
+  async getArtworkById(id: number): Promise<Artwork | undefined> {
+    const [artwork] = await db.select().from(artworks).where(eq(artworks.id, id));
     return artwork;
   }
 

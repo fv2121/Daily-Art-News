@@ -11,11 +11,13 @@ import NotFound from "@/pages/not-found";
 import Gallery from "@/pages/gallery";
 import Dashboard from "@/pages/dashboard";
 import Settings from "@/pages/settings";
+import ArtworkDetail from "@/pages/artwork-detail";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Gallery} />
+      <Route path="/artwork/:id" component={ArtworkDetail} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/settings" component={Settings} />
       <Route component={NotFound} />
