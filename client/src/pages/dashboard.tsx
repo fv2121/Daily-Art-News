@@ -45,7 +45,7 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 function PipelineRunCard({ run, isLatest }: { run: PipelineRun; isLatest: boolean }) {
-  const [expanded, setExpanded] = useState(isLatest);
+  const [expanded, setExpanded] = useState(false);
   const { toast } = useToast();
 
   const { data: themes } = useQuery<Theme[]>({
