@@ -104,7 +104,7 @@ function PipelineRunCard({ run, isLatest }: { run: PipelineRun; isLatest: boolea
             </div>
             {artworks && artworks.length > 0 && artworks[0].caption && (
               <span className="text-xs text-muted-foreground mt-0.5 line-clamp-1" data-testid={`text-artwork-title-run-${run.id}`}>
-                {artworks[0].caption}
+                {artworks[0].caption.length > 50 ? artworks[0].caption.slice(0, 50) + "..." : artworks[0].caption}
               </span>
             )}
           </div>
