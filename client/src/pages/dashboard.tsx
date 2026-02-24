@@ -206,12 +206,12 @@ function PipelineRunCard({ run, isLatest }: { run: PipelineRun; isLatest: boolea
                           <p className="text-xs text-muted-foreground line-clamp-2">{art.caption}</p>
                         )}
                         {art.rationale && (
-                          <div className="mt-1.5 pt-1.5 border-t">
-                            <div className="flex items-center gap-1 mb-1">
-                              <BookOpen className="w-3 h-3 text-muted-foreground" />
-                              <span className="text-[10px] font-medium text-muted-foreground">Artist's Process</span>
+                          <div className="mt-2 p-3 rounded-md bg-primary/5 border border-primary/15">
+                            <div className="flex items-center gap-1.5 mb-1.5">
+                              <BookOpen className="w-4 h-4 text-primary" />
+                              <span className="text-xs font-semibold text-primary" data-testid={`label-dashboard-rationale-${art.id}`}>Artist's Process</span>
                             </div>
-                            <p className="text-xs text-muted-foreground leading-relaxed" data-testid={`text-dashboard-rationale-${art.id}`}>
+                            <p className="text-sm text-foreground/80 leading-relaxed" data-testid={`text-dashboard-rationale-${art.id}`}>
                               {art.rationale}
                             </p>
                           </div>
