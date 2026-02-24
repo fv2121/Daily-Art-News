@@ -16,13 +16,7 @@ export interface ExtractedTheme {
   safetyFlag: boolean;
 }
 
-export async function extractThemes(
-  newsItems: InsertNewsItem[]
-): Promise<ExtractedTheme[]> {
-  const headlines = newsItems
-    .map((item, i) => `${i + 1}. [${item.source}] ${item.title}${item.snippet ? ": " + item.snippet.slice(0, 120) : ""}`)
-    .join("\n");
-
+async function callOpenAIForThemes(headlines: string): Promise<ExtractedTheme[]> {
   const response = await openai.chat.completions.create({
     model: "gpt-5-mini",
     messages: [
@@ -63,19 +57,54 @@ Return JSON array of exactly 5 themes.`,
   });
 
   const content = response.choices[0]?.message?.content || "{}";
+  let parsed: any;
   try {
-    const parsed = JSON.parse(content);
-    const arr = Array.isArray(parsed) ? parsed : (parsed.themes || parsed.data || []);
-    return arr.map((t: any, i: number) => ({
-      rank: t.rank || i + 1,
-      title: t.title || "Untitled Theme",
-      description: t.description || "",
-      mood: t.mood || "neutral",
-      visualTokens: Array.isArray(t.visualTokens) ? t.visualTokens : [],
-      score: typeof t.score === "number" ? t.score : 5,
-      safetyFlag: !!t.safetyFlag,
-    }));
-  } catch {
-    return [];
+    parsed = JSON.parse(content);
+  } catch (parseErr: any) {
+    console.error("[Analysis] Failed to parse OpenAI response:", content.slice(0, 500));
+    throw new Error(`JSON parse error: ${parseErr.message}. Response preview: ${content.slice(0, 200)}`);
   }
+
+  const arr = Array.isArray(parsed) ? parsed : (parsed.themes || parsed.data || []);
+  if (!Array.isArray(arr) || arr.length === 0) {
+    console.warn("[Analysis] OpenAI returned empty or invalid themes structure:", content.slice(0, 500));
+    throw new Error(`OpenAI returned no themes. Response preview: ${content.slice(0, 200)}`);
+  }
+
+  return arr.map((t: any, i: number) => ({
+    rank: t.rank || i + 1,
+    title: t.title || "Untitled Theme",
+    description: t.description || "",
+    mood: t.mood || "neutral",
+    visualTokens: Array.isArray(t.visualTokens) ? t.visualTokens : [],
+    score: typeof t.score === "number" ? t.score : 5,
+    safetyFlag: !!t.safetyFlag,
+  }));
+}
+
+export async function extractThemes(
+  newsItems: InsertNewsItem[]
+): Promise<ExtractedTheme[]> {
+  const headlines = newsItems
+    .map((item, i) => `${i + 1}. [${item.source}] ${item.title}${item.snippet ? ": " + item.snippet.slice(0, 120) : ""}`)
+    .join("\n");
+
+  const maxAttempts = 2;
+  let lastError: Error | null = null;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await callOpenAIForThemes(headlines);
+    } catch (err: any) {
+      lastError = err;
+      console.error(`[Analysis] Attempt ${attempt}/${maxAttempts} failed:`, err.message);
+      if (attempt < maxAttempts) {
+        await new Promise((r) => setTimeout(r, 2000));
+      }
+    }
+  }
+
+  throw new Error(
+    `Theme extraction failed after ${maxAttempts} attempts: ${lastError?.message || "Unknown error"}`
+  );
 }

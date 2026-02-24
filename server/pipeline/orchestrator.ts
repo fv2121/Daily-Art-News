@@ -37,15 +37,6 @@ export async function runPipeline(config: StyleConfig): Promise<number> {
       await storage.updatePipelineRun(runId, { status: "analyzing" });
       const extractedThemes = await extractThemes(newsData);
 
-      if (extractedThemes.length === 0) {
-        await storage.updatePipelineRun(runId, {
-          status: "failed",
-          error: "Failed to extract themes from news.",
-          completedAt: new Date(),
-        });
-        return;
-      }
-
       for (const t of extractedThemes) {
         await storage.createTheme({
           pipelineRunId: runId,
@@ -72,6 +63,9 @@ export async function runPipeline(config: StyleConfig): Promise<number> {
       }
 
       const themeForArt = matchedTheme || savedThemes[0];
+      if (!themeForArt) {
+        throw new Error("No themes available for artwork generation");
+      }
 
       await storage.updatePipelineRun(runId, { status: "generating" });
       const art = await generateArtwork(
