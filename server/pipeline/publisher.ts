@@ -12,12 +12,10 @@ export interface PublishContent {
   hashtags: string[];
 }
 
-export async function generateCaption(
+async function callOpenAIForCaption(
   theme: Theme,
-  artistName?: string
+  persona: string
 ): Promise<PublishContent> {
-  const persona = artistName || "Daily AI Artist";
-
   const response = await openai.chat.completions.create({
     model: "gpt-5-mini",
     messages: [
@@ -49,16 +47,41 @@ Return JSON: { "caption": "...", "rationale": "...", "hashtags": ["..."] }`,
     throw new Error(`Caption JSON parse error: ${parseErr.message}. Response: ${content.slice(0, 200)}`);
   }
 
-  const caption = parsed.caption || `Today's piece: ${theme.title}`;
-  const rationale = parsed.rationale || "";
-  const hashtags = Array.isArray(parsed.hashtags) ? parsed.hashtags : ["abstractart", "aiart", "dailydrop"];
-
-  if (!parsed.caption) {
-    console.warn("[Publisher] Caption field missing from OpenAI response:", content.slice(0, 300));
-  }
-  if (!parsed.rationale) {
-    console.warn("[Publisher] Rationale field missing from OpenAI response:", content.slice(0, 300));
+  if (!parsed.caption && !parsed.rationale) {
+    throw new Error(`OpenAI returned empty caption/rationale. Response: ${content.slice(0, 200)}`);
   }
 
-  return { caption, rationale, hashtags };
+  return {
+    caption: parsed.caption || `Today's piece: ${theme.title}`,
+    rationale: parsed.rationale || "",
+    hashtags: Array.isArray(parsed.hashtags) ? parsed.hashtags : ["abstractart", "aiart", "dailydrop"],
+  };
+}
+
+export async function generateCaption(
+  theme: Theme,
+  artistName?: string
+): Promise<PublishContent> {
+  const persona = artistName || "Daily AI Artist";
+  const maxAttempts = 3;
+  let lastError: Error | null = null;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await callOpenAIForCaption(theme, persona);
+    } catch (err: any) {
+      lastError = err;
+      console.error(`[Publisher] Attempt ${attempt}/${maxAttempts} failed:`, err.message);
+      if (attempt < maxAttempts) {
+        await new Promise((r) => setTimeout(r, 3000));
+      }
+    }
+  }
+
+  console.warn("[Publisher] All attempts failed, using fallback caption");
+  return {
+    caption: `Today's piece: ${theme.title}`,
+    rationale: "",
+    hashtags: ["abstractart", "aiart", "dailydrop"],
+  };
 }

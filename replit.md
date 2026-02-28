@@ -40,18 +40,25 @@ data/style_config.json      - Persisted settings
 ```
 
 ## Key API Endpoints
-- `GET /api/artworks` - All published artworks
-- `GET /api/artworks/:id` - Single artwork with theme and news
+- `GET /api/artworks` - All published artworks (imageData excluded from response)
+- `GET /api/artworks/:id` - Single artwork with theme and news (imageData excluded)
+- `GET /api/artwork-image/:id` - Serve artwork image as PNG from database
 - `GET /api/pipeline-runs` - All pipeline runs
 - `GET /api/pipeline-runs/:id/themes` - Themes for a run
-- `GET /api/pipeline-runs/:id/artworks` - Artworks for a run
+- `GET /api/pipeline-runs/:id/artworks` - Artworks for a run (imageData excluded)
 - `GET /api/pipeline-runs/:id/news` - News items for a run
 - `POST /api/pipeline/run` - Trigger new pipeline run
 - `GET/PUT /api/settings` - Style configuration
 
+## Image Storage
+- New artworks store image data as base64 in the `image_data` column of the artworks table
+- Images are served via `/api/artwork-image/:id` route with proper caching headers
+- Old seed artworks still use static files in `client/public/artworks/seed/`
+- The `imageData` field is stripped from all JSON API responses to keep payloads small
+
 ## Pipeline Flow
 1. **Ingest** - Fetch headlines from configured RSS feeds
-2. **Analyze** - Extract 5 abstract themes via OpenAI
+2. **Analyze** - Extract 5 abstract themes via OpenAI (3 retries, 3s delay)
 3. **Select** - Pick top-scoring safe theme
 4. **Generate** - Create artwork via gpt-image-1
 5. **Publish** - Generate caption + hashtags, mark as published

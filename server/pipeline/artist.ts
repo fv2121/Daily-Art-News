@@ -1,10 +1,9 @@
 import { generateImageBuffer } from "../replit_integrations/image/client";
-import { writeFile, mkdir } from "fs/promises";
-import { join } from "path";
 import type { Theme } from "@shared/schema";
 
 export interface GeneratedArt {
   imageUrl: string;
+  imageData: string;
   prompt: string;
   negativePrompt: string;
 }
@@ -31,16 +30,11 @@ export async function generateArtwork(
 
   const imageBuffer = await generateImageBuffer(fullPrompt, "1024x1024");
 
-  const date = new Date().toISOString().split("T")[0];
-  const outputDir = join(process.cwd(), "client", "public", "artworks", date);
-  await mkdir(outputDir, { recursive: true });
-
-  const filename = `artwork-${theme.id}-${Date.now()}.png`;
-  const filePath = join(outputDir, filename);
-  await writeFile(filePath, imageBuffer);
+  const base64Data = imageBuffer.toString("base64");
 
   return {
-    imageUrl: `/artworks/${date}/${filename}`,
+    imageUrl: "",
+    imageData: base64Data,
     prompt,
     negativePrompt,
   };

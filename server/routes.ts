@@ -20,10 +20,27 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
 
+  app.get("/api/artwork-image/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const artwork = await storage.getArtworkById(id);
+      if (!artwork || !artwork.imageData) {
+        return res.status(404).json({ message: "Image not found" });
+      }
+      const buffer = Buffer.from(artwork.imageData, "base64");
+      res.set("Content-Type", "image/png");
+      res.set("Cache-Control", "public, max-age=31536000, immutable");
+      res.send(buffer);
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
   app.get("/api/artworks", async (_req, res) => {
     try {
       const artworks = await storage.getAllPublishedArtworks();
-      res.json(artworks);
+      const sanitized = artworks.map(({ imageData, ...rest }) => rest);
+      res.json(sanitized);
     } catch (err: any) {
       res.status(500).json({ message: err.message });
     }
@@ -39,7 +56,8 @@ export async function registerRoutes(
       const theme = artwork.themeId ? (await storage.getThemesByRun(artwork.pipelineRunId!))
         .find(t => t.id === artwork.themeId) : null;
       const news = artwork.pipelineRunId ? await storage.getNewsItemsByRun(artwork.pipelineRunId) : [];
-      res.json({ artwork, theme, news });
+      const { imageData, ...artworkData } = artwork;
+      res.json({ artwork: artworkData, theme, news });
     } catch (err: any) {
       res.status(500).json({ message: err.message });
     }
@@ -68,7 +86,8 @@ export async function registerRoutes(
     try {
       const id = parseInt(req.params.id);
       const artworksList = await storage.getArtworksByRun(id);
-      res.json(artworksList);
+      const sanitized = artworksList.map(({ imageData, ...rest }) => rest);
+      res.json(sanitized);
     } catch (err: any) {
       res.status(500).json({ message: err.message });
     }

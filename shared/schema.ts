@@ -56,6 +56,7 @@ export const artworks = pgTable("artworks", {
   pipelineRunId: integer("pipeline_run_id").references(() => pipelineRuns.id),
   themeId: integer("theme_id").references(() => themes.id),
   imageUrl: text("image_url").notNull(),
+  imageData: text("image_data"),
   prompt: text("prompt").notNull(),
   negativePrompt: text("negative_prompt"),
   caption: text("caption"),

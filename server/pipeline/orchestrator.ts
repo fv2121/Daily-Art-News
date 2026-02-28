@@ -80,7 +80,8 @@ export async function runPipeline(config: StyleConfig): Promise<number> {
       const artwork = await storage.createArtwork({
         pipelineRunId: runId,
         themeId: themeForArt.id,
-        imageUrl: art.imageUrl,
+        imageUrl: "pending",
+        imageData: art.imageData,
         prompt: art.prompt,
         negativePrompt: art.negativePrompt,
         caption: publishContent.caption,
@@ -88,6 +89,10 @@ export async function runPipeline(config: StyleConfig): Promise<number> {
         hashtags: publishContent.hashtags,
         published: true,
         publishedAt: new Date(),
+      });
+
+      await storage.updateArtwork(artwork.id, {
+        imageUrl: `/api/artwork-image/${artwork.id}`,
       });
 
       await storage.updatePipelineRun(runId, {
