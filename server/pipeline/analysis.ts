@@ -89,7 +89,7 @@ export async function extractThemes(
     .map((item, i) => `${i + 1}. [${item.source}] ${item.title}${item.snippet ? ": " + item.snippet.slice(0, 120) : ""}`)
     .join("\n");
 
-  const maxAttempts = 2;
+  const maxAttempts = 3;
   let lastError: Error | null = null;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -99,7 +99,7 @@ export async function extractThemes(
       lastError = err;
       console.error(`[Analysis] Attempt ${attempt}/${maxAttempts} failed:`, err.message);
       if (attempt < maxAttempts) {
-        await new Promise((r) => setTimeout(r, 2000));
+        await new Promise((r) => setTimeout(r, 3000));
       }
     }
   }
