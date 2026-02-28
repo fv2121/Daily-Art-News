@@ -3,6 +3,7 @@ import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
 import { seedDatabase } from "./seed";
+import { execSync } from "child_process";
 
 const app = express();
 const httpServer = createServer(app);
@@ -61,6 +62,14 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  try {
+    console.log("[startup] Syncing database schema...");
+    execSync("npx drizzle-kit push --force", { stdio: "inherit" });
+    console.log("[startup] Database schema synced.");
+  } catch (err) {
+    console.error("[startup] Schema sync failed:", err);
+  }
+
   await seedDatabase().catch((err) => console.error("Seed error:", err));
   await registerRoutes(httpServer, app);
 
