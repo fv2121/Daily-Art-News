@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRoute, Link } from "wouter";
 import { Card } from "@/components/ui/card";
@@ -12,10 +13,12 @@ import {
   Palette,
   Newspaper,
   Sparkles,
+  Printer,
 } from "lucide-react";
 import { format } from "date-fns";
 import type { Artwork, Theme, NewsItem } from "@shared/schema";
 import { motion } from "framer-motion";
+import { GelatoModal } from "@/components/gelato-modal";
 
 type ArtworkDetailResponse = {
   artwork: Artwork;
@@ -40,6 +43,7 @@ function DetailSkeleton() {
 export default function ArtworkDetail() {
   const [, params] = useRoute("/artwork/:id");
   const id = params?.id;
+  const [gelatoOpen, setGelatoOpen] = useState(false);
 
   const { data, isLoading, error } = useQuery<ArtworkDetailResponse>({
     queryKey: ["/api/artworks", id],
@@ -71,12 +75,23 @@ export default function ArtworkDetail() {
 
   return (
     <div className="p-4 md:p-6 max-w-5xl mx-auto space-y-6">
-      <Link href="/">
-        <Button variant="ghost" size="sm" data-testid="button-back-gallery">
-          <ArrowLeft className="w-4 h-4 mr-1.5" />
-          Back to Gallery
+      <div className="flex items-center justify-between gap-4">
+        <Link href="/">
+          <Button variant="ghost" size="sm" data-testid="button-back-gallery">
+            <ArrowLeft className="w-4 h-4 mr-1.5" />
+            Back to Gallery
+          </Button>
+        </Link>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setGelatoOpen(true)}
+          data-testid="button-send-to-gelato-detail"
+        >
+          <Printer className="w-4 h-4 mr-1.5" />
+          Send to Gelato
         </Button>
-      </Link>
+      </div>
 
       <motion.div
         initial={{ opacity: 0, y: 12 }}
@@ -178,6 +193,12 @@ export default function ArtworkDetail() {
           </Card>
         )}
       </motion.div>
+
+      <GelatoModal
+        artwork={artwork}
+        open={gelatoOpen}
+        onOpenChange={setGelatoOpen}
+      />
     </div>
   );
 }

@@ -2,15 +2,16 @@ import { useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Calendar, Hash, Sparkles, ExternalLink, BookOpen, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Calendar, Hash, Sparkles, ExternalLink, BookOpen, ChevronDown, ChevronUp, Printer } from "lucide-react";
 import { format } from "date-fns";
 import type { Artwork } from "@shared/schema";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { Link } from "wouter";
+import { GelatoModal } from "@/components/gelato-modal";
 
-function HeroArtwork({ artwork }: { artwork: Artwork }) {
+function HeroArtwork({ artwork, onSendToGelato }: { artwork: Artwork; onSendToGelato: (a: Artwork) => void }) {
   const [showRationale, setShowRationale] = useState(false);
 
   return (
@@ -59,48 +60,60 @@ function HeroArtwork({ artwork }: { artwork: Artwork }) {
         </div>
       </div>
       </Link>
-      {artwork.rationale && (
-        <div className="border border-t-0 rounded-b-md bg-card">
-          <button
-            onClick={() => setShowRationale(!showRationale)}
-            className="w-full flex items-center justify-between gap-2 p-3 md:p-4 text-sm font-medium text-foreground hover-elevate rounded-b-md"
-            data-testid="button-toggle-rationale"
-          >
-            <span className="flex items-center gap-2">
+      <div className="border border-t-0 rounded-b-md bg-card">
+        <div className="flex items-center justify-between px-3 md:px-4">
+          {artwork.rationale ? (
+            <button
+              onClick={() => setShowRationale(!showRationale)}
+              className="flex items-center gap-2 py-3 md:py-4 text-sm font-medium text-foreground hover-elevate rounded-md"
+              data-testid="button-toggle-rationale"
+            >
               <BookOpen className="w-4 h-4 text-muted-foreground" />
               Artist's Process
-            </span>
-            {showRationale ? (
-              <ChevronUp className="w-4 h-4 text-muted-foreground" />
-            ) : (
-              <ChevronDown className="w-4 h-4 text-muted-foreground" />
-            )}
-          </button>
-          <AnimatePresence>
-            {showRationale && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="overflow-hidden"
-              >
-                <p
-                  className="px-3 md:px-4 pb-3 md:pb-4 text-sm text-muted-foreground leading-relaxed"
-                  data-testid="text-hero-rationale"
-                >
-                  {artwork.rationale}
-                </p>
-              </motion.div>
-            )}
-          </AnimatePresence>
+              {showRationale ? (
+                <ChevronUp className="w-4 h-4 text-muted-foreground" />
+              ) : (
+                <ChevronDown className="w-4 h-4 text-muted-foreground" />
+              )}
+            </button>
+          ) : (
+            <div />
+          )}
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={(e) => { e.preventDefault(); onSendToGelato(artwork); }}
+            className="text-xs gap-1.5 my-2"
+            data-testid={`button-send-to-gelato-hero`}
+          >
+            <Printer className="w-3.5 h-3.5" />
+            Send to Gelato
+          </Button>
         </div>
-      )}
+        <AnimatePresence>
+          {showRationale && artwork.rationale && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="overflow-hidden"
+            >
+              <p
+                className="px-3 md:px-4 pb-3 md:pb-4 text-sm text-muted-foreground leading-relaxed"
+                data-testid="text-hero-rationale"
+              >
+                {artwork.rationale}
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </motion.section>
   );
 }
 
-function ArtworkCard({ artwork, index }: { artwork: Artwork; index: number }) {
+function ArtworkCard({ artwork, index, onSendToGelato }: { artwork: Artwork; index: number; onSendToGelato: (a: Artwork) => void }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -128,22 +141,32 @@ function ArtworkCard({ artwork, index }: { artwork: Artwork; index: number }) {
             {artwork.caption || "Untitled piece"}
           </p>
           <div className="flex items-center justify-between gap-2 flex-wrap">
-            {artwork.publishedAt && (
-              <span className="text-xs text-muted-foreground flex items-center gap-1">
-                <Calendar className="w-3 h-3" />
-                {format(new Date(artwork.publishedAt), "MMM d")}
-              </span>
-            )}
-            {artwork.rationale && (
-              <button
-                onClick={() => setExpanded(!expanded)}
-                className="text-xs text-muted-foreground flex items-center gap-1 hover-elevate rounded-md px-1.5 py-0.5"
-                data-testid={`button-rationale-${artwork.id}`}
-              >
-                <BookOpen className="w-3 h-3" />
-                Process
-              </button>
-            )}
+            <div className="flex items-center gap-2">
+              {artwork.publishedAt && (
+                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Calendar className="w-3 h-3" />
+                  {format(new Date(artwork.publishedAt), "MMM d")}
+                </span>
+              )}
+              {artwork.rationale && (
+                <button
+                  onClick={() => setExpanded(!expanded)}
+                  className="text-xs text-muted-foreground flex items-center gap-1 hover-elevate rounded-md px-1.5 py-0.5"
+                  data-testid={`button-rationale-${artwork.id}`}
+                >
+                  <BookOpen className="w-3 h-3" />
+                  Process
+                </button>
+              )}
+            </div>
+            <button
+              onClick={() => onSendToGelato(artwork)}
+              className="text-xs text-muted-foreground flex items-center gap-1 hover-elevate rounded-md px-1.5 py-0.5"
+              data-testid={`button-send-to-gelato-${artwork.id}`}
+              title="Send to Gelato"
+            >
+              <Printer className="w-3 h-3" />
+            </button>
           </div>
           <AnimatePresence>
             {expanded && artwork.rationale && (
@@ -208,6 +231,14 @@ export default function Gallery() {
     queryKey: ["/api/artworks"],
   });
 
+  const [gelatoArtwork, setGelatoArtwork] = useState<Artwork | null>(null);
+  const [gelatoOpen, setGelatoOpen] = useState(false);
+
+  function openGelato(artwork: Artwork) {
+    setGelatoArtwork(artwork);
+    setGelatoOpen(true);
+  }
+
   if (isLoading) {
     return (
       <div className="p-4 md:p-6 max-w-7xl mx-auto">
@@ -230,7 +261,7 @@ export default function Gallery() {
 
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-8">
-      {latestArtwork && <HeroArtwork artwork={latestArtwork} />}
+      {latestArtwork && <HeroArtwork artwork={latestArtwork} onSendToGelato={openGelato} />}
 
       {archiveArtworks.length > 0 && (
         <section>
@@ -240,11 +271,17 @@ export default function Gallery() {
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {archiveArtworks.map((artwork, i) => (
-              <ArtworkCard key={artwork.id} artwork={artwork} index={i} />
+              <ArtworkCard key={artwork.id} artwork={artwork} index={i} onSendToGelato={openGelato} />
             ))}
           </div>
         </section>
       )}
+
+      <GelatoModal
+        artwork={gelatoArtwork}
+        open={gelatoOpen}
+        onOpenChange={setGelatoOpen}
+      />
     </div>
   );
 }

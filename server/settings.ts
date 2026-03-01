@@ -9,6 +9,8 @@ export interface StyleConfig {
   allowedColors: string[];
   bannedColors: string[];
   forbiddenContent: string[];
+  gelatoStoreId: string;
+  gelatoTemplateId: string;
 }
 
 const CONFIG_PATH = join(process.cwd(), "data", "style_config.json");
@@ -24,6 +26,8 @@ const DEFAULT_CONFIG: StyleConfig = {
   allowedColors: [],
   bannedColors: [],
   forbiddenContent: ["text", "faces", "flags", "weapons", "maps", "identifiable symbols"],
+  gelatoStoreId: "",
+  gelatoTemplateId: "",
 };
 
 export async function getSettings(): Promise<StyleConfig> {

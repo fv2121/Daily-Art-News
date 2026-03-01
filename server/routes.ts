@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { runPipeline } from "./pipeline/orchestrator";
 import { getSettings, saveSettings, type StyleConfig } from "./settings";
+import { createGelatoProduct } from "./gelato";
 import { z } from "zod";
 
 const settingsSchema = z.object({
@@ -13,6 +14,14 @@ const settingsSchema = z.object({
   allowedColors: z.array(z.string()).default([]),
   bannedColors: z.array(z.string()).default([]),
   forbiddenContent: z.array(z.string()).default([]),
+  gelatoStoreId: z.string().default(""),
+  gelatoTemplateId: z.string().default(""),
+});
+
+const gelatoProductSchema = z.object({
+  artworkId: z.number(),
+  title: z.string().min(1),
+  description: z.string().optional(),
 });
 
 export async function registerRoutes(
@@ -159,6 +168,52 @@ export async function registerRoutes(
       const theme = await storage.updateTheme(id, { selected: true });
       if (!theme) return res.status(404).json({ message: "Theme not found" });
       res.json(theme);
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  app.post("/api/gelato/create-product", async (req, res) => {
+    try {
+      const parsed = gelatoProductSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ message: "Invalid request", errors: parsed.error.errors });
+      }
+      const { artworkId, title, description } = parsed.data;
+
+      const settings = await getSettings();
+      if (!settings.gelatoStoreId || !settings.gelatoTemplateId) {
+        return res.status(400).json({
+          message: "Gelato store ID and template ID must be configured in Settings before creating products.",
+          configError: true,
+        });
+      }
+
+      if (!process.env.GELATO_API_KEY) {
+        return res.status(400).json({
+          message: "Gelato API key is not configured. Please add it as a secret (GELATO_API_KEY).",
+          configError: true,
+        });
+      }
+
+      const artwork = await storage.getArtwork(artworkId);
+      if (!artwork) {
+        return res.status(404).json({ message: "Artwork not found" });
+      }
+
+      const host = req.get("host") || "";
+      const protocol = req.get("x-forwarded-proto") || (host.includes("localhost") ? "http" : "https");
+      const imageUrl = `${protocol}://${host}/api/artwork-image/${artworkId}`;
+
+      const result = await createGelatoProduct({
+        storeId: settings.gelatoStoreId,
+        templateId: settings.gelatoTemplateId,
+        title,
+        description,
+        imageUrl,
+      });
+
+      res.json(result);
     } catch (err: any) {
       res.status(500).json({ message: err.message });
     }

@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { Save, Rss, Palette, ShieldAlert, Loader2 } from "lucide-react";
+import { Save, Rss, Palette, ShieldAlert, Loader2, Printer } from "lucide-react";
 import { useState, useEffect } from "react";
 
 interface StyleConfig {
@@ -19,6 +19,8 @@ interface StyleConfig {
   allowedColors: string[];
   bannedColors: string[];
   forbiddenContent: string[];
+  gelatoStoreId: string;
+  gelatoTemplateId: string;
 }
 
 export default function Settings() {
@@ -36,6 +38,8 @@ export default function Settings() {
     allowedColors: [],
     bannedColors: [],
     forbiddenContent: [],
+    gelatoStoreId: "",
+    gelatoTemplateId: "",
   });
 
   useEffect(() => {
@@ -159,6 +163,42 @@ export default function Settings() {
             placeholder="text, faces, flags, weapons, maps"
             data-testid="input-forbidden-content"
           />
+        </div>
+      </Card>
+
+      <Card className="p-4 space-y-4">
+        <div className="flex items-center gap-2 mb-1">
+          <Printer className="w-4 h-4 text-muted-foreground" />
+          <h3 className="text-sm font-medium">Gelato Integration</h3>
+        </div>
+        <p className="text-xs text-muted-foreground -mt-2">
+          Connect your Gelato store to create on-demand T-shirt products from artworks. Find your Store ID and Template ID in your{" "}
+          <a href="https://dashboard.gelato.com" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">
+            Gelato dashboard
+          </a>
+          . The <code className="text-xs bg-muted px-1 rounded">GELATO_API_KEY</code> secret must also be set.
+        </p>
+        <div className="space-y-3">
+          <div>
+            <Label htmlFor="gelato-store-id">Store ID</Label>
+            <Input
+              id="gelato-store-id"
+              value={form.gelatoStoreId}
+              onChange={(e) => setForm({ ...form, gelatoStoreId: e.target.value })}
+              placeholder="e.g. abc123-store-id"
+              data-testid="input-gelato-store-id"
+            />
+          </div>
+          <div>
+            <Label htmlFor="gelato-template-id">T-shirt Template ID</Label>
+            <Input
+              id="gelato-template-id"
+              value={form.gelatoTemplateId}
+              onChange={(e) => setForm({ ...form, gelatoTemplateId: e.target.value })}
+              placeholder="e.g. tpl_xyz789"
+              data-testid="input-gelato-template-id"
+            />
+          </div>
         </div>
       </Card>
     </div>
