@@ -1,0 +1,21 @@
+{
+  "rssSources": [
+    "https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml",
+    "https://feeds.bbci.co.uk/news/world/rss.xml"
+  ],
+  "artistName": "Daily AI Artist",
+  "negativePrompt": "text, words, letters, logos, faces, people, weapons, flags, maps, identifiable symbols, blurry, low quality, watermark",
+  "compositionMotifs": "asymmetric composition, high negative space, geometric precision, flowing lines, bold color blocks",
+  "allowedColors": [],
+  "bannedColors": [],
+  "forbiddenContent": [
+    "text",
+    "faces",
+    "flags",
+    "weapons",
+    "maps",
+    "identifiable symbols"
+  ],
+  "gelatoStoreId": "test-store-123",
+  "gelatoTemplateId": "tpl-test-456"
+}
