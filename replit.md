@@ -19,6 +19,7 @@ client/src/
   pages/settings.tsx        - Configure RSS sources, art style, safety rules
   components/app-sidebar.tsx - Navigation sidebar
   components/theme-toggle.tsx - Dark/light mode toggle
+  components/gelato-modal.tsx - Modal for sending artwork to Gelato store
   lib/theme-provider.tsx    - Theme context provider
 
 server/
@@ -48,7 +49,8 @@ data/style_config.json      - Persisted settings
 - `GET /api/pipeline-runs/:id/artworks` - Artworks for a run (imageData excluded)
 - `GET /api/pipeline-runs/:id/news` - News items for a run
 - `POST /api/pipeline/run` - Trigger new pipeline run
-- `GET/PUT /api/settings` - Style configuration
+- `GET/PUT /api/settings` - Style configuration (includes gelatoStoreId, gelatoTemplateId)
+- `POST /api/gelato/create-product` - Create a product listing in Gelato store from an artwork
 
 ## Image Storage
 - New artworks store image data as base64 in the `image_data` column of the artworks table
@@ -62,6 +64,14 @@ data/style_config.json      - Persisted settings
 3. **Select** - Pick top-scoring safe theme
 4. **Generate** - Create artwork via gpt-image-1
 5. **Publish** - Generate caption + hashtags, mark as published
+
+## Gelato Integration
+- Artwork images can be sent to a Gelato store as T-shirt product listings
+- Requires `GELATO_API_KEY` secret and `gelatoStoreId` + `gelatoTemplateId` in Settings
+- Uses Gelato Ecommerce API: `POST https://ecommerce.gelatoapis.com/v1/stores/{storeId}/products:create-from-template`
+- Image URL passed to Gelato is constructed from the request host (works on deployed app)
+- "Send to Gelato" button appears on gallery hero, archive cards, and artwork detail page
+- Server-side client: `server/gelato.ts`
 
 ## Running
 - `npm run dev` starts both frontend and backend
