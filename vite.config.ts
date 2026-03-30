@@ -5,6 +5,8 @@ import path from "path";
 export default defineConfig({
   plugins: [
     react(),
+    // Replit-only dev plugins — only loaded when REPL_ID is present (i.e. inside Replit).
+    // Skipped entirely in local development (VS Code, etc.) and in production builds.
     ...(process.env.NODE_ENV !== "production" &&
     process.env.REPL_ID !== undefined
       ? [
