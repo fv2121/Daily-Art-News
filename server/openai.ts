@@ -3,9 +3,10 @@ import OpenAI from "openai";
 /**
  * Shared OpenAI client that works in both Replit and local environments.
  *
- * - On Replit: uses AI_INTEGRATIONS_OPENAI_API_KEY + AI_INTEGRATIONS_OPENAI_BASE_URL
- *   (automatically injected by Replit's AI Integration proxy)
- * - Locally: uses OPENAI_API_KEY directly against OpenAI's standard API endpoint
+ * Priority order:
+ * 1. OPENAI_API_KEY — standard key, works in all environments (preferred)
+ * 2. AI_INTEGRATIONS_OPENAI_API_KEY + AI_INTEGRATIONS_OPENAI_BASE_URL — Replit's
+ *    managed proxy, used as a fallback if OPENAI_API_KEY is not set
  */
 function createOpenAIClient(): OpenAI {
   const standardKey = process.env.OPENAI_API_KEY;
