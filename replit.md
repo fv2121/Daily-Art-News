@@ -1,4 +1,4 @@
-# Daily AI Artist
+# Daily AI Artist v2
 
 ## Overview
 An automated daily pipeline that transforms news headlines into unique abstract artwork using AI. The system fetches RSS news, extracts abstract themes via OpenAI, generates artwork using gpt-image-1, and publishes to a web gallery.
