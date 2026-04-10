@@ -5,22 +5,6 @@ import path from "path";
 export default defineConfig({
   plugins: [
     react(),
-    // Replit-only dev plugins — only loaded when REPL_ID is present (i.e. inside Replit).
-    // Skipped entirely in local development (VS Code, etc.) and in production builds.
-    ...(process.env.NODE_ENV !== "production" &&
-    process.env.REPL_ID !== undefined
-      ? [
-          await import("@replit/vite-plugin-runtime-error-modal").then((m) =>
-            m.default(),
-          ),
-          await import("@replit/vite-plugin-cartographer").then((m) =>
-            m.cartographer(),
-          ),
-          await import("@replit/vite-plugin-dev-banner").then((m) =>
-            m.devBanner(),
-          ),
-        ]
-      : []),
   ],
   resolve: {
     alias: {
